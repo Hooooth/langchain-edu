@@ -23,9 +23,15 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str
     OPENAI_MODEL: str
     
-    # 기본 설정 (추가 환경변수가 필요하면 여기에 추가하세요)
+    # OpenSearch 설정
+    OPENSEARCH_HOST: str = "https://localhost:9200"
+    OPENSEARCH_USERNAME: str = "admin"
+    OPENSEARCH_PASSWORD: str = "admin"
+    OPENSEARCH_VERIFY_CERTS: bool = False
 
-    # IMP: DeepAgents 라이브러리 실행 시 Graph 에이전트의 최대 재귀 호출 횟수(Recursion Limit) 설정
+    # 공공데이터 포털
+    PUBLIC_DATA_API_KEY: str = ""
+
     # DeepAgents 설정
     DEEPAGENT_RECURSION_LIMIT: int = 20
 
