@@ -7,6 +7,7 @@ from app.services.agent_service import AgentService
 from fastapi.responses import StreamingResponse
 
 chat_router = APIRouter()
+_agent_service = AgentService()
 
 
 @chat_router.post("/chat")
@@ -26,12 +27,11 @@ async def post_chat(request: ChatRequest):
     try:
         # agent_service = AgentService()
         thread_id = getattr(request, "thread_id", uuid.uuid4())
-        
+
         async def event_generator():
             try:
                 yield f'data: {{"step": "model", "tool_calls": ["Planning"]}}\n\n'
-                agent_service = AgentService()
-                async for chunk in agent_service.process_query(
+                async for chunk in _agent_service.process_query(
                     user_messages=request.message,
                     thread_id=thread_id
                 ):

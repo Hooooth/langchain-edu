@@ -2,6 +2,7 @@
 import json
 from langchain.tools import tool
 from app.utils.opensearch_client import get_opensearch_client
+from app.core.config import settings
 
 
 @tool
@@ -21,7 +22,7 @@ def search_price(item_name: str) -> str:
         "sort": [{"date": {"order": "desc"}}],
         "size": 10,
     }
-    result = client.search(index="prices-daily-goods", body=query)
+    result = client.search(index=settings.OPENSEARCH_INDEX_PRICES, body=query)
     hits = result.get("hits", {}).get("hits", [])
 
     if not hits:
@@ -63,7 +64,7 @@ def compare_prices(item_name: str, period: str = "1주") -> str:
         "sort": [{"date": {"order": "desc"}}],
         "size": 10,
     }
-    result = client.search(index="prices-daily-goods", body=query)
+    result = client.search(index=settings.OPENSEARCH_INDEX_PRICES, body=query)
     hits = result.get("hits", {}).get("hits", [])
 
     if not hits:
@@ -133,7 +134,7 @@ def create_price_chart(item_name: str) -> str:
         "sort": [{"date": {"order": "desc"}}],
         "size": 5,
     }
-    result = client.search(index="prices-daily-goods", body=query)
+    result = client.search(index=settings.OPENSEARCH_INDEX_PRICES, body=query)
     hits = result.get("hits", {}).get("hits", [])
 
     if not hits:

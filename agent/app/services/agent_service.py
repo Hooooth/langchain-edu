@@ -8,23 +8,26 @@ import uuid
 from app.utils.logger import log_execution, custom_logger
 
 from langchain_core.messages import HumanMessage
+from langchain_openai import ChatOpenAI
+from langgraph.prebuilt import create_react_agent
+from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.errors import GraphRecursionError
+
+from app.core.config import settings
+from app.agents.prompts import system_prompt
+from app.agents.tools import search_price, compare_prices, create_price_chart
 
 
 class AgentService:
     def __init__(self):
-        # IMP: LangChain을 통해 사용할 LLM(OpenAI) 객체 초기화 구현. 에이전트의 두뇌 역할을 합니다.
         self.agent = None
+        self._checkpointer = InMemorySaver()
         self.progress_queue: asyncio.Queue = asyncio.Queue()
 
-    def _create_agent(self, thread_id: uuid.UUID = None):
-        """LangChain 에이전트 생성"""
-        from langchain_openai import ChatOpenAI
-        from langgraph.prebuilt import create_react_agent
-        from langgraph.checkpoint.memory import InMemorySaver
-        from app.core.config import settings
-        from app.agents.prompts import system_prompt
-        from app.agents.tools import search_price, compare_prices, create_price_chart
+    def _create_agent(self):
+        """LangChain 에이전트 생성 (한 번만 생성 후 캐싱)"""
+        if self.agent is not None:
+            return
 
         llm = ChatOpenAI(
             api_key=settings.OPENAI_API_KEY,
@@ -33,13 +36,11 @@ class AgentService:
 
         tools = [search_price, compare_prices, create_price_chart]
 
-        checkpointer = InMemorySaver()
-
         self.agent = create_react_agent(
             llm,
             tools,
             prompt=system_prompt,
-            checkpointer=checkpointer,
+            checkpointer=self._checkpointer,
         )
 
     # 실제 대화 로직
@@ -48,7 +49,8 @@ class AgentService:
         """LangChain Messages 형식의 쿼리를 처리하고 AIMessage 형식으로 반환합니다."""
         try:
             # 에이전트 초기화 (한 번만)
-            self._create_agent(thread_id=thread_id)
+            self.progress_queue = asyncio.Queue()  # 요청별 큐 초기화
+            self._create_agent()
 
             custom_logger.info(f"사용자 메시지: {user_messages}")
 

@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     OPENSEARCH_USERNAME: str = "admin"
     OPENSEARCH_PASSWORD: str = "admin"
     OPENSEARCH_VERIFY_CERTS: bool = False
+    OPENSEARCH_INDEX_PRICES: str = "prices-daily-goods"
 
     # 공공데이터 포털
     PUBLIC_DATA_API_KEY: str = ""
